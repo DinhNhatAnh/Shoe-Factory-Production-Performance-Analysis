@@ -1,9 +1,9 @@
-# Footwear Production Defect & Performance Analysis
+# Shoe Factory Production Performance Analysis
 
-An end-to-end Power BI project that analyzes one month of production at a footwear factory (Cutting → Gluing → Stitching → Assembly) and turns it into a 5-page dashboard for the **Production General Manager**. It combines quality metrics (defect rate, FPY, RTY, COPQ) with Industrial Engineering (IE) metrics (SAM, efficiency, utilization, downtime, changeover loss).
+An end-to-end Power BI project that analyzes one month of production at a footwear factory (Cutting → Gluing → Stitching → Assembly) and turns it into a 5-page dashboard for the **Production General Manager**. It combines quality metrics (defect rate, FPY, RTY, COPQ) with Industrial Engineering (IE) metrics (efficiency, utilization, downtime, changeover loss).
 
 > **Note:** The dataset is synthetic and was created for this portfolio project. It does not come from a real company.
-
+![Cover](Pictures/coverphoto.jpg)
 ---
 
 ## Business problem
@@ -37,11 +37,11 @@ Headline KPIs: **139,759 pairs** produced vs 150,300 planned · **RTY 90.9%** ·
 | **4. IE & Downtime** | Efficiency, plan attainment, utilization, downtime by reason, changeover loss, performance by line |
 | **5. COPQ** | Cost of poor quality by process, defect code, line and shift |
 
-![Overview](images/01_dashboard_overview.png)
-![Quality](images/02_dashboard_quality.png)
-![Root Cause](images/03_dashboard_root_cause.png)
-![IE & Downtime](images/04_dashboard_ie_downtime.png)
-![COPQ](images/05_dashboard_copq.png)
+![Overview](Pictures/Overview.jpg)
+![Quality](Pictures/Quality.jpg)
+![Root Cause](Pictures/Root%20Cause.jpg)
+![IE & Downtime](Pictures/IE%20%26%20Downtime.jpg)
+![COPQ](Pictures/Cost.jpg)
 
 ## Dataset
 
@@ -73,8 +73,6 @@ Dim_Defect[Defect_Code]       → Fact_Defects[Defect_Code]
 Dim_DowntimeReason[Reason_Code] → Fact_Downtime[Reason_Code]
 ```
 
-> **Lesson learned:** the duplicate `Date`, `Line_ID`, `Style_ID` and `Process_ID` columns in `Fact_Defects` and `Fact_Downtime` must not be used as chart axes or joined to dimensions. Doing so filters only the numerator of a rate and produces wrong results (for example an RTY of 97.7% instead of 90.9%). Always filter through the dimensions and `Fact_Production`.
-
 ## KPIs and IE concepts
 
 | KPI | Definition |
@@ -89,76 +87,22 @@ Dim_DowntimeReason[Reason_Code] → Fact_Downtime[Reason_Code]
 | COPQ | Rework cost (rework minutes × labor rate) + scrap cost (scrapped pairs × cumulative material value) |
 | 6M | Man, Machine, Material, Method, Measurement, Environment |
 
-## Selected DAX
-
-```dax
-Defect Rate =
-DIVIDE ( SUM ( Fact_Defects[Defect_Qty] ), SUM ( Fact_Production[Output_Pairs] ) )
-
-FPY = 1 - [Defect Rate]
-
-FPY CUT = CALCULATE ( [FPY], Dim_Process[Process_ID] = "CUT" )
-FPY GLU = CALCULATE ( [FPY], Dim_Process[Process_ID] = "GLU" )
-FPY STI = CALCULATE ( [FPY], Dim_Process[Process_ID] = "STI" )
-FPY ASM = CALCULATE ( [FPY], Dim_Process[Process_ID] = "ASM" )
-
-RTY = [FPY CUT] * [FPY GLU] * [FPY STI] * [FPY ASM]
-
-Efficiency =
-DIVIDE ( SUM ( Fact_Production[Earned_Min] ), SUM ( Fact_Production[Available_Min] ) )
-
-COPQ = SUM ( Fact_Defects[Total_Quality_Cost_USD] )
-
-Target Defect Rate (Process) =
-IF (
-    HASONEVALUE ( Dim_Process[Process_ID] ),
-    MAX ( Dim_Process[Target_Defect_Rate] ),
-    [Target Defect Rate]
-)
-
-Defect Status (Process) =
-VAR _r = [Defect Rate]
-VAR _t = [Target Defect Rate (Process)]
-RETURN
-    SWITCH (
-        TRUE (),
-        _r > _t * 1.2, "Over threshold",
-        _r > _t, "Warning",
-        "On target"
-    )
-```
-
-The full set of 50+ measures (grouped into 7 KPI folders), the date table and the process-alert measures are in the [`dax/`](dax/) folder.
-
 ## Repository structure
 
 ```
 .
 ├── README.md
-├── data/
-│   └── Shoe_Factory_Defect_Simulation_Oct2026.xlsx
-├── dax/
-│   ├── PowerBI_DAX_Measures.txt
-│   ├── PowerBI_Dim_Date.txt
-│   └── PowerBI_DAX_Process_Alert.txt
-├── dashboard/
-│   └── Production_Dashboard.pbix          # add your Power BI file here
-├── docs/
-│   └── Portfolio_Production_Performance_Analysis_EN.pptx
-└── images/
-    ├── 01_dashboard_overview.png
-    ├── 02_dashboard_quality.png
-    ├── 03_dashboard_root_cause.png
-    ├── 04_dashboard_ie_downtime.png
-    └── 05_dashboard_copq.png
+├── Dataset/
+│   └── Dataset.xlsx
+├── Power BI/
+│   └── Dashboard.pbix
+└── Pictures/
+    ├── Overview.jpg
+    ├── Quality.jpg
+    ├── Root Cause.jpg
+    ├── IE & Downtime.jpg
+    └── Cost.jpg
 ```
-
-## How to use
-
-1. Download the repository and open the `.pbix` file in Power BI Desktop.
-2. If the data source path is broken, go to **Transform data → Data source settings** and point it to `data/Shoe_Factory_Defect_Simulation_Oct2026.xlsx`.
-3. Check the model relationships against the list above before building new visuals.
-4. Validate your numbers against the `Summary_Check` sheet: 139,759 final pairs, defect rate 2.35%, RTY 90.9%, efficiency 82.0%.
 
 ## Limitations
 
@@ -169,9 +113,5 @@ The full set of 50+ measures (grouped into 7 KPI folders), the date table and th
 
 ## Tools
 
-Microsoft Excel · Power BI Desktop · DAX · Industrial Engineering concepts (SAM, efficiency, line balancing, learning curve, 6M)
+Power BI Desktop · DAX · Industrial Engineering concepts (Efficiency, line balancing, Root Cause 6M)
 
-## Author
-
-**[Your Name]** · Data Analyst
-[LinkedIn](https://www.linkedin.com/in/your-profile) · [Email](mailto:your.email@example.com)
